@@ -36,6 +36,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +62,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // 启用 edge-to-edge 显示，让内容延伸到系统栏下方
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_main);
+
+        // 处理系统窗口内边距，避免状态栏遮挡
+        View root = findViewById(R.id.rootView);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            v.setPadding(0, top, 0, 0);  // 顶部留出状态栏空间
+            webView.setPadding(0, 0, 0, bottom);  // 底部留出导航栏空间
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         progressBar = findViewById(R.id.progressBar);
         webView = findViewById(R.id.webView);
