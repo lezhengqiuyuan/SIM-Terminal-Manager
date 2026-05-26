@@ -1,0 +1,10 @@
+# Android 构建输出
+Android/app/build/
+Android/app/release/
+Android/.gradle/
+Android/build/
+Android/local.properties
+*.apk
+*.aab
+*.jks
+*.keystore

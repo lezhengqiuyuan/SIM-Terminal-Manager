@@ -1,0 +1,12 @@
+# 敏感配置（含数据库密码）
+config/database.php
+config/app.php
+config/installed.lock
+
+# 上传文件
+uploads/*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
