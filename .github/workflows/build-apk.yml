@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'Android/**'
+      - 'AAAA/**'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
     inputs:
@@ -44,14 +44,14 @@ jobs:
 
       - name: ✅ 授予执行权限
         run: |
-          chmod +x Android/gradlew 2>/dev/null || true
+          chmod +x AAAA/gradlew 2>/dev/null || true
 
       - name: 🛠️ 生成 Gradle Wrapper
-        working-directory: Android
+        working-directory: AAAA
         run: gradle wrapper --gradle-version 8.5
 
       - name: 🔨 编译 APK
-        working-directory: Android
+        working-directory: AAAA
         run: |
           BUILD_TYPE="${{ inputs.build_type || 'debug' }}"
           if [ "$BUILD_TYPE" = "release" ]; then
@@ -63,14 +63,14 @@ jobs:
       - name: 📋 查看构建产物
         run: |
           echo "=== APK 文件列表 ==="
-          find Android/app/build/outputs -name "*.apk" -exec ls -lh {} \;
+          find AAAA/app/build/outputs -name "*.apk" -exec ls -lh {} \;
 
       - name: 📤 上传 APK (Debug)
         if: ${{ (inputs.build_type || 'debug') == 'debug' }}
         uses: actions/upload-artifact@v4
         with:
           name: SIM终端管理-debug
-          path: Android/app/build/outputs/apk/debug/*.apk
+          path: AAAA/app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
       - name: 📤 上传 APK (Release)
@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SIM终端管理-release
-          path: Android/app/build/outputs/apk/release/*.apk
+          path: AAAA/app/build/outputs/apk/release/*.apk
           retention-days: 90
 
       - name: 📊 构建摘要
