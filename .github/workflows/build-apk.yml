@@ -1,0 +1,88 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'build type'
+        required: true
+        type: choice
+        default: 'release'
+        options: [debug, release]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    name: Build APK (${{ inputs.build_type || 'release' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Download Gradle Wrapper
+        run: |
+          mkdir -p gradle/wrapper
+          curl -sL -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.5.0/gradle/wrapper/gradle-wrapper.jar
+          curl -sL -o gradlew https://raw.githubusercontent.com/gradle/gradle/v8.5.0/gradlew
+          chmod +x gradlew
+
+      - name: Generate Keystore
+        run: |
+          keytool -genkey -v -keystore app/release.keystore -alias smallpatch \
+            -keyalg RSA -keysize 2048 -validity 36500 \
+            -storepass smallpatch2026 -keypass smallpatch2026 \
+            -dname "CN=SIM, OU=smallpatch, O=smallpatch, L=SZ, ST=GD, C=CN"
+
+      - name: Build APK
+        env:
+          KEYSTORE_FILE: release.keystore
+          KEYSTORE_PASSWORD: smallpatch2026
+          KEY_ALIAS: smallpatch
+          KEY_PASSWORD: smallpatch2026
+        run: |
+          BUILD_TYPE="${{ inputs.build_type || 'release' }}"
+          if [ "$BUILD_TYPE" = "release" ]; then
+            ./gradlew assembleRelease
+          else
+            ./gradlew assembleDebug
+          fi
+
+      - name: List APK
+        run: find app/build/outputs -name "*.apk" -exec ls -lh {} \;
+
+      - name: Upload APK (Debug)
+        if: ${{ (inputs.build_type || 'release') == 'debug' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: SIM-debug
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: Upload APK (Release)
+        if: ${{ (inputs.build_type || 'release') == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: SIM-release
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+      - name: Create Release
+        if: ${{ (inputs.build_type || 'release') == 'release' && github.ref == 'refs/heads/master' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SIM v${{ github.run_number }}
+          tag_name: v${{ github.run_number }}
+          files: app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
