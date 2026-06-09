@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
     inputs:
       build_type:
@@ -78,7 +78,7 @@ jobs:
           retention-days: 90
 
       - name: Create Release
-        if: ${{ (inputs.build_type || 'release') == 'release' && github.ref == 'refs/heads/master' }}
+        if: ${{ (inputs.build_type || 'release') == 'release' && github.ref == 'refs/heads/main' }}
         uses: softprops/action-gh-release@v2
         with:
           name: SIM v${{ github.run_number }}
