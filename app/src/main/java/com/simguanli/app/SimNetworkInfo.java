@@ -113,7 +113,7 @@ public class SimNetworkInfo {
             java.lang.reflect.Method m = TelephonyManager.class.getMethod("getServiceState");
             Object ss = m.invoke(tm);
             j.put("raw", ss != null ? ss.toString() : "null");
-        } catch (Exception e) { j.put("error", e.getMessage()); }
+        } catch (Exception e) { try { j.put("error", e.getMessage()); } catch (Exception ignored) {} }
         return j;
     }
 
